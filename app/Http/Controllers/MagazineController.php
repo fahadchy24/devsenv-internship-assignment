@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MagazineCreateRequest;
 use App\Models\Magazine;
+use App\Repositories\MagazineRepository;
 use Illuminate\Http\Request;
 
 class MagazineController extends Controller
 {
+    public function __construct(private MagazineRepository $magazineRepository)
+    {
+        $this->magazineRepository = $magazineRepository;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +21,9 @@ class MagazineController extends Controller
      */
     public function index()
     {
-        return view('index');
+        $magazines = $this->magazineRepository->get();
+
+        return view('index', compact('magazines'));
     }
 
     /**
@@ -24,7 +33,19 @@ class MagazineController extends Controller
      */
     public function create()
     {
-        return view('create');
+        $categories = [
+            [
+                "name" => "Entertainment",
+            ],
+            [
+                "name" => "Lifestyle",
+            ],
+            [
+                "name" => "Fashion",
+            ],
+        ];
+
+        return view('create', compact('categories'));
     }
 
     /**
@@ -33,9 +54,15 @@ class MagazineController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(MagazineCreateRequest $request)
     {
-        //
+        $magazine = $this->magazineRepository->create($request->all());
+
+        // dd($request->all());
+
+        if (!empty($magazine)) {
+            return redirect()->route('index');
+        }
     }
 
     /**
@@ -44,43 +71,10 @@ class MagazineController extends Controller
      * @param  \App\Models\Magazine  $magazine
      * @return \Illuminate\Http\Response
      */
-    // public function show(Magazine $magazine)
-    public function show()
+    public function show(string $slug)
     {
-        return view('detail');
-    }
+        $magazine = $this->magazineRepository->showBySlug($slug);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Magazine  $magazine
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Magazine $magazine)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Magazine  $magazine
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Magazine $magazine)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Magazine  $magazine
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Magazine $magazine)
-    {
-        //
+        return view('detail', compact('magazine'));
     }
 }
